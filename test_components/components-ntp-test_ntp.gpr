@@ -1,0 +1,7 @@
+with "../components-ntp.gpr";
+
+project Components.NTP.Test_NTP is
+   for Exec_Dir use ".";
+   for Source_Files use ("test_ntp.adb");
+   for Main use ("test_ntp.adb");
+end Components.NTP.Test_NTP;
