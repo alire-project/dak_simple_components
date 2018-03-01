@@ -1,4 +1,4 @@
-with "../components.gpr";
+with "components.gpr";
 with "../components-connections_server-http_server-sqlite_browser.gpr";
 
 project Components.Test_SQLite_Browser is
