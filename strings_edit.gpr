@@ -121,6 +121,9 @@ project Strings_Edit is
    end Compiler;
 
    package Linker is
+      for Linker_Options use ("-ldl");
+      --  Works around a bug in GNAT FSF 7.2
+
       case Development is
          when "Debug" =>
             for Default_Switches ("ada") use ("-g");
