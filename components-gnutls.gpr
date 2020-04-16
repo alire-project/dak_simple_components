@@ -1,0 +1,16 @@
+with "components.gpr";
+
+project Components.GNUTLS is
+
+   for Source_Files use
+       (  "gnutls.adb",
+          "gnutls.ads"
+       );
+   for Object_Dir use Components'Object_Dir;
+
+   package Linker is
+      for Linker_Options use ("-lgnutls");
+   end Linker;
+
+end Components.GNUTLS;
+

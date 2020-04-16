@@ -1,0 +1,21 @@
+with "components.gpr";
+with "components-connections_server.gpr";
+
+project Components.Connections_Server.SMTP is
+
+   for Source_Files use
+       (  "gnat-sockets-smtp.adb",
+          "gnat-sockets-smtp.ads",
+          "gnat-sockets-smtp-client.adb",
+          "gnat-sockets-smtp-client.ads",
+          "gnat-sockets-smtp-client-synchronous.adb",
+          "gnat-sockets-smtp-client-synchronous.ads"
+       );
+   for Object_Dir use Components'Object_Dir;
+
+   package Compiler renames Components.Compiler;
+   package Binder   renames Components.Binder;
+   package Builder  renames Components.Builder;
+   package Linker   renames Components.Linker;
+
+end Components.Connections_Server.SMTP;

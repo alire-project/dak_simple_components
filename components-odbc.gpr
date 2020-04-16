@@ -1,0 +1,58 @@
+with "components.gpr";
+with "odbc/odbc.gpr";
+with "tables.gpr";
+
+project Components.ODBC is
+
+   Common_Files :=
+       (  "odbc.ads",
+          "odbc-api.adb",
+          "odbc-api.ads",
+          "odbc-architecture_dependent.ads",
+          "odbc-api-keys-arrays.ads",
+          "odbc-api-keys-edit.ads",
+          "odbc-api-keys-sets.ads",
+          "odbc-api-keys.adb",
+          "odbc-api-keys.ads",
+          "odbc-api-links.adb",
+          "odbc-api-links.ads",
+          "odbc-bound_parameters.adb",
+          "odbc-bound_parameters.ads",
+          "odbc-driver_dependent.ads",
+          "odbc-sqltypes.adb",
+          "odbc-sqltypes.ads",
+          "odbc-thin.adb",
+          "odbc-thin.ads",
+          "persistent-native_odbc.adb",
+          "persistent-native_odbc.ads",
+          "persistent-native_odbc-text_io.adb",
+          "persistent-native_odbc-text_io.ads"
+      );
+
+   case ODBC.ODBC_Driver is
+      when "ODBC32" =>
+         case Tables.Arch is
+            when "x86_64" | "aarch64" | "auto" =>
+               for Source_Dirs use (".", "./odbc", "./odbc/odbc32", "./odbc/odbc32/x86_64");
+            when "i686" | "armhf" =>
+               for Source_Dirs use (".", "./odbc", "./odbc/odbc32", "./odbc/odbc32/i686");
+         end case;
+         for Source_Files use Common_Files;
+      when "unixODBC" | "auto" =>
+         case Tables.Arch is
+            when "x86_64" | "aarch64" | "auto" =>
+               for Source_Dirs use (".", "./odbc", "./odbc/unixodbc", "./odbc/unixodbc/x86_64");
+            when "i686" | "armhf" =>
+               for Source_Dirs use (".", "./odbc", "./odbc/unixodbc", "./odbc/unixodbc/i686");
+         end case;
+         for Source_Files use Common_Files;
+   end case;
+
+   for Object_Dir use Components'Object_Dir;
+
+   package Compiler renames Components.Compiler;
+   package Binder   renames Components.Binder;
+   package Builder  renames Components.Builder;
+   package Linker   renames Components.Linker;
+
+end Components.ODBC;

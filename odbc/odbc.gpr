@@ -1,0 +1,97 @@
+project ODBC is
+
+   type ODBC_Driver_Type is ("ODBC32", "unixODBC", "auto");
+   ODBC_Driver : ODBC_Driver_Type := external ("odbc", "auto");
+   
+   type OS_Type is
+        (  "Windows", "Windows_NT",
+           "Linux",
+           "UNIX",
+           "OSX",
+           "FreeBSD",
+           "auto"
+        );
+   Target_OS : OS_Type := external ("Target_OS", "auto");
+ 
+   Target_Triplet := Project'Target;
+
+   case Target_OS is
+      when "auto" =>
+         case Target_Triplet is
+            when "aarch64-linux-gnu"   |
+                 "arm-linux"           |
+                 "arm-linux-gnueabi"   |
+                 "arm-linux-gnueabihf" |
+                 "x86_64-linux"        |
+                 "x86_64-linux-gnu"    |
+                 "x86_64-redhat-linux" |
+                 "x86_64-suse-linux"   |
+                 "x86-linux"           |
+                 "x86-suse-linux"      |
+                 "i686-linux-gnu"      |
+                 "i686-redhat-linux"   |
+                 "i686-suse-linux"     =>
+               Target_OS := "Linux";
+            when "x86_64-apple-darwin" |
+                 "x86_64-darwin"       |
+                 "x86-darwin"          =>
+               Target_OS := "OSX";
+            when "x86_64-freebsd"      |
+                 "i686-freebsd"        =>
+               Target_OS := "FreeBSD";
+            when "x86_64-pc-cygwin"    |
+                 "x86_64-w64-mingw32"  |
+                 "x86_64-windows"      |
+                 "x86-windows"         |
+                 "i686-pc-cygwin"      |
+                 "i686-pc-mingw32"     |
+                 "i686-w64-mingw32"    =>
+               Target_OS := "Windows";
+            when "" =>
+               for Source_Files use
+                   (  "target is undefined, "
+                   &  "scenario auto cannot be used"
+                   );
+            when others =>
+               for Source_Files use
+                   (  "target "
+                   &  Target_Triplet
+                   &  " is unknown, scenario auto cannot be used"
+                   );
+         end case;
+      when others =>
+         null;
+   end case;
+
+   case ODBC_Driver is
+      when "auto" =>
+         case Target_OS is
+            when "Linux" | "OSX" | "FreeBSD" | "UNIX" =>
+               ODBC_Driver := "unixODBC";
+            when "Windows" | "Windows_NT" =>
+               ODBC_Driver := "ODBC32";
+            when "auto" =>
+               for Source_Files use
+                   (  "target is undefined, "
+                   &  "scenario auto cannot be used"
+                   );
+         end case;
+      when others =>
+         null;
+   end case;
+ 
+   case ODBC_Driver is
+      when "unixODBC" | "auto" =>
+         for Externally_Built use "true";
+         for Source_Files use ();
+         for Library_Dir use ".";
+         for Library_Name use "odbc";
+         for Library_Kind use "dynamic";
+      when "ODBC32" =>
+         for Externally_Built use "true";
+         for Source_Files use ();
+         for Library_Dir use ".";
+         for Library_Name use "odbc32";
+         for Library_Kind use "dynamic";
+   end case;
+end ODBC;

@@ -1,0 +1,390 @@
+with "strings_edit.gpr";
+with "tables.gpr";
+
+project Components is
+
+   type Object_Tracing_Mode is ("Off", "On");
+   Object_Tracing : Object_Tracing_Mode := external ("Traced_objects", "Off");
+
+   type Tasking_Mode is ("Multiple", "Single");
+   Tasking : Tasking_Mode := external ("Tasking", "Multiple");
+
+   type Atomic_Access_Mode is
+        (  "Pragma-atomic",
+           "GCC-built-ins",
+           "GCC-long-offsets",
+           "auto"
+        );
+   Atomic_Access : Atomic_Access_Mode := external ("Atomic_Access", "auto");
+
+   Dir_List := ();
+   
+   case Object_Tracing is
+      when "Off" =>
+         null;
+      when "On" =>
+         Dir_List := Dir_List & "gnat-debug";
+   end case;
+   
+   case Tasking is
+      when "Multiple" =>
+         null;
+      when "Single" =>
+         Dir_List := Dir_List & "single-task";
+   end case;
+
+   Dir_List := Dir_List & ".";
+
+   case Tables.Target_OS is
+      when "Windows" | "Windows_NT" =>
+         for Languages use ("Ada");
+         Dir_List := Dir_List & "os/windows";
+      when "Linux" | "UNIX" | "auto" =>
+         for Languages use ("Ada", "C");
+         Dir_List := Dir_List & "os/linux";
+      when "OSX" =>
+         for Languages use ("Ada");
+         Dir_List := Dir_List & "os/pthreads";
+      when "FreeBSD" =>
+         for Languages use ("Ada");
+         Dir_List := Dir_List & "os/pthreads";
+         for Library_Options use ("-lpthread");
+   end case;
+
+   case Atomic_Access is
+      when "auto" =>
+         case Tables.Arch is
+            when "x86_64" | "aarch64" =>
+               Atomic_Access := "Pragma-atomic";
+            when "i686" | "armhf" | "auto" =>
+               Atomic_Access := "GCC-long-offsets";
+         end case;
+      when others =>
+         null;
+   end case;         
+
+   case Atomic_Access is
+      when "Pragma-atomic" =>
+         Dir_List := Dir_List & "atomic-access/ada";
+      when "GCC-built-ins" =>
+         Dir_List := Dir_List & "atomic-access/gcc";
+      when "GCC-long-offsets" | "auto" =>
+         Dir_List := Dir_List & "atomic-access/gcc-long-offsets";
+   end case;
+
+   Object_Dir_Path := Strings_Edit.Object_Dir_Path;
+   for Object_Dir use Object_Dir_Path;
+   
+   for Source_Dirs use Dir_List;
+
+   Files_List :=
+   (  "backward_link_handles.ads",
+      "backward_link_handles-sets.ads",
+      "block_streams.adb",
+      "block_streams.ads",
+      "deposit_handles.ads",
+      "gamma.adb",
+      "generic_address_order.adb",
+      "generic_address_order.ads",
+      "generic_blackboard.adb",
+      "generic_blackboard.ads",
+      "generic_blackboard-generic_task_safe.adb",
+      "generic_blackboard-generic_task_safe.ads",
+      "generic_b_tree.adb",
+      "generic_b_tree.ads",
+      "generic_chebyshev_polynomials.adb",
+      "generic_chebyshev_polynomials.ads",
+      "generic_cubic_spline.adb",
+      "generic_cubic_spline.ads",
+      "generic_directed_graph.adb",
+      "generic_directed_graph.ads",
+      "generic_directed_weighted_graph.adb",
+      "generic_directed_weighted_graph.ads",
+      "generic_directed_graph.ads",
+      "generic_discrete_map.adb",
+      "generic_discrete_map.ads",
+      "generic_discrete_indefinite_map.adb",
+      "generic_discrete_indefinite_map.ads",
+      "generic_discrete_set.adb",
+      "generic_discrete_set.ads",
+      "generic_doubly_linked.ads",
+      "generic_doubly_linked_web-generic_list.adb",
+      "generic_doubly_linked_web-generic_list.ads",
+      "generic_doubly_linked_web.adb",
+      "generic_doubly_linked_web.ads",
+      "generic_fifo.adb",
+      "generic_fifo.ads",
+      "generic_fifo-generic_signaled.adb",
+      "generic_fifo-generic_signaled.ads",
+      "generic_indefinite_b_tree.adb",
+      "generic_indefinite_b_tree.ads",
+      "generic_indefinite_fifo.adb",
+      "generic_indefinite_fifo.ads",
+      "generic_indefinite_fifo-generic_signaled.adb",
+      "generic_indefinite_fifo-generic_signaled.ads",
+      "generic_indefinite_map.adb",
+      "generic_indefinite_map.ads",
+      "generic_indefinite_set.adb",
+      "generic_indefinite_set.ads",
+      "generic_map.adb",
+      "generic_map.ads",
+      "generic_segmented_stack.adb",
+      "generic_segmented_stack.ads",
+      "generic_random_sequence.adb",
+      "generic_random_sequence.ads",
+      "generic_set.adb",
+      "generic_set.ads",
+      "generic_stack.adb",
+      "generic_stack.ads",
+      "generic_unbounded_array.adb",
+      "generic_unbounded_array.ads",
+      "generic_unbounded_ptr_array.adb",
+      "generic_unbounded_ptr_array.ads",
+      "ieee_754.ads",
+      "ieee_754-generic_double_precision.adb",
+      "ieee_754-generic_double_precision.ads",
+      "ieee_754-generic_single_precision.adb",
+      "ieee_754-generic_single_precision.ads",
+      "ieee_754-floats.ads",
+      "ieee_754-long_floats.ads",
+      "long_float_chebyshev_polynomials.ads",
+      "long_float_cubic_spline.ads",
+      "object.adb",
+      "object.ads",
+      "object-archived-handle.adb",
+      "object-archived-handle.ads",
+      "object-archived-iterators.adb",
+      "object-archived-iterators.ads",
+      "object-archived-lists.adb",
+      "object-archived-lists.ads",
+      "object-archived-sets.adb",
+      "object-archived-sets.ads",
+      "object-archived.adb",
+      "object-archived.ads",
+      "object-handle-generic_bounded_array.adb",
+      "object-handle-generic_bounded_array.ads",
+      "object-handle-generic_handle_set.adb",
+      "object-handle-generic_handle_set.ads",
+      "object-handle-generic_set.adb",
+      "object-handle-generic_set.ads",
+      "object-handle-generic_unbounded_array.adb",
+      "object-handle-generic_unbounded_array.ads",
+      "object-handle.adb",
+      "object-handle.ads",
+      "parsers-generic_argument-segmented_stack.adb",
+      "parsers-generic_argument-segmented_stack.ads",
+      "parsers-generic_argument.ads",
+      "parsers-generic_lexer-ada_2005_blanks.adb",
+      "parsers-generic_lexer-ada_2005_blanks.ads",
+      "parsers-generic_lexer-ada_blanks.adb",
+      "parsers-generic_lexer-ada_blanks.ads",
+      "parsers-generic_lexer-blanks.adb",
+      "parsers-generic_lexer-blanks.ads",
+      "parsers-generic_lexer-cpp_blanks.adb",
+      "parsers-generic_lexer-cpp_blanks.ads",
+      "parsers-generic_lexer.adb",
+      "parsers-generic_lexer.ads",
+      "parsers-generic_operation-generic_stack.adb",
+      "parsers-generic_operation-generic_stack.ads",
+      "parsers-generic_operation-segmented_stack.ads",
+      "parsers-generic_operation.ads",
+      "parsers-generic_source-get_ada_2005_blank.adb",
+      "parsers-generic_source-get_ada_2005_blank.ads",
+      "parsers-generic_source-get_ada_blank.adb",
+      "parsers-generic_source-get_ada_blank.ads",
+      "parsers-generic_source-get_blank.adb",
+      "parsers-generic_source-get_blank.ads",
+      "parsers-generic_source-get_cpp_blank.adb",
+      "parsers-generic_source-get_cpp_blank.ads",
+      "parsers-generic_source-get_text.adb",
+      "parsers-generic_source-get_text.ads",
+      "parsers-generic_source-get_token.adb",
+      "parsers-generic_source-get_token.ads",
+      "parsers-generic_source-get_utf8_text.adb",
+      "parsers-generic_source-get_utf8_text.ads",
+      "parsers-generic_source-keywords.adb",
+      "parsers-generic_source-keywords.ads",
+      "parsers-generic_source-text_io.adb",
+      "parsers-generic_source-text_io.ads",
+      "parsers-generic_source.ads",
+      "parsers-generic_token-generic_token_lexer.adb",
+      "parsers-generic_token-generic_token_lexer.ads",
+      "parsers-generic_token-segmented_lexer.ads",
+      "parsers-generic_token.adb",
+      "parsers-generic_token.ads",
+      "parsers-multiline_source-latin1_text_io.adb",
+      "parsers-multiline_source-latin1_text_io.ads",
+      "parsers-multiline_source-location_text_io.ads",
+      "parsers-multiline_source-standard_input.adb",
+      "parsers-multiline_source-standard_input.ads",
+      "parsers-multiline_source-stream_io.adb",
+      "parsers-multiline_source-stream_io.ads",
+      "parsers-multiline_source-text_io.adb",
+      "parsers-multiline_source-text_io.ads",
+      "parsers-multiline_source-wide_text_io.adb",
+      "parsers-multiline_source-wide_text_io.ads",
+      "parsers-multiline_source.adb",
+      "parsers-multiline_source.ads",
+      "parsers-string_source.adb",
+      "parsers-string_source.ads",
+      "parsers.ads",
+      "persistent-blocking_files.adb",
+      "persistent-blocking_files.ads",
+      "persistent-blocking_files-text_io.adb",
+      "persistent-blocking_files-text_io.ads",
+      "persistent-blocking_files-transactional.adb",
+      "persistent-blocking_files-transactional.ads",
+      "persistent-blocking_files-transactional-dump.adb",
+      "persistent-blocking_files-transactional-dump.ads",
+      "persistent-data_bank-index.adb",
+      "persistent-data_bank-index.ads",
+      "persistent-data_bank-index-text_io.adb",
+      "persistent-data_bank-index-text_io.ads",
+      "persistent-data_bank-mutexes.ads",
+      "persistent-data_bank-indexed.adb",
+      "persistent-data_bank-indexed.ads",
+      "persistent-data_bank-indexed-text_io.adb",
+      "persistent-data_bank-indexed-text_io.ads",
+      "persistent-data_bank-reference.adb",
+      "persistent-data_bank-reference.ads",
+      "persistent-data_bank.adb",
+      "persistent-data_bank.ads",
+      "persistent-directory.adb",
+      "persistent-directory.ads",
+      "persistent-handle.adb",
+      "persistent-handle.ads",
+      "persistent-memory_pools.adb",
+      "persistent-memory_pools.ads",
+      "persistent-memory_pools-dump.adb",
+      "persistent-memory_pools-dump.ads",
+      "persistent-memory_pools-streams-external_b_tree.adb",
+      "persistent-memory_pools-streams-external_b_tree.ads",
+      "persistent-memory_pools-streams-generic_external_b_tree.adb",
+      "persistent-memory_pools-streams-generic_external_b_tree.ads",
+      "persistent-memory_pools-streams-generic_external_ptr_b_tree.adb",
+      "persistent-memory_pools-streams-generic_external_ptr_b_tree.ads",
+      "persistent-memory_pools-streams-external_b_tree-generic_table.adb",
+      "persistent-memory_pools-streams-external_b_tree-generic_table.ads",
+      "persistent-memory_pools-streams.adb",
+      "persistent-memory_pools-streams.ads",
+      "persistent-single_file.adb",
+      "persistent-single_file.ads",
+      "persistent-single_file_keys.adb",
+      "persistent-single_file_keys.ads",
+      "persistent-single_file_keys-arrays.ads",
+      "persistent-single_file_keys-sets.ads",
+      "persistent-single_file-text_io.adb",
+      "persistent-single_file-text_io.ads",
+      "persistent.adb",
+      "persistent.ads",
+      "stack_storage-mark_and_release.adb",
+      "stack_storage-mark_and_release.ads",
+      "stack_storage.adb",
+      "stack_storage.ads",
+      "storage_streams.adb",
+      "storage_streams.ads",
+      "strings_edit-time_conversions.adb",
+      "strings_edit-time_conversions.ads",
+      "strings_edit-symmetric_serialization.adb",
+      "strings_edit-symmetric_serialization.ads",
+      "synchronization.ads",
+      "synchronization-events.adb",
+      "synchronization-events.ads",
+      "synchronization-generic_events_array.adb",
+      "synchronization-generic_events_array.ads",
+      "synchronization-generic_mutexes_array.adb",
+      "synchronization-generic_mutexes_array.ads",
+      "synchronization-generic_pulse_events.adb",
+      "synchronization-generic_pulse_events.ads",
+      "synchronization-interprocess.adb",
+      "synchronization-interprocess.ads",
+      "synchronization-interprocess-events.adb",
+      "synchronization-interprocess-events.ads",
+      "synchronization-interprocess-generic_blackboard.adb",
+      "synchronization-interprocess-generic_blackboard.ads",
+      "synchronization-interprocess-generic_fifo.adb",
+      "synchronization-interprocess-generic_fifo.ads",
+      "synchronization-interprocess-generic_shared_object.adb",
+      "synchronization-interprocess-generic_shared_object.ads",
+      "synchronization-interprocess-memory_pools.adb",
+      "synchronization-interprocess-memory_pools.ads",
+      "synchronization-interprocess-mutexes.adb",
+      "synchronization-interprocess-mutexes.ads",
+      "synchronization-interprocess-process_call_service.adb",
+      "synchronization-interprocess-process_call_service.ads",
+      "synchronization-interprocess-process_call_service-generic_call_service_arrays.adb",
+      "synchronization-interprocess-process_call_service-generic_call_service_arrays.ads",
+      "synchronization-interprocess-process_call_service-generic_dyadic_function.adb",
+      "synchronization-interprocess-process_call_service-generic_dyadic_function.ads",
+      "synchronization-interprocess-process_call_service-generic_dyadic_procedure.adb",
+      "synchronization-interprocess-process_call_service-generic_dyadic_procedure.ads",
+      "synchronization-interprocess-process_call_service-generic_parameterless_function.adb",
+      "synchronization-interprocess-process_call_service-generic_parameterless_function.ads",
+      "synchronization-interprocess-process_call_service-parameterless_procedure.adb",
+      "synchronization-interprocess-process_call_service-parameterless_procedure.ads",
+      "synchronization-interprocess-process_call_service-generic_ternary_function.adb",
+      "synchronization-interprocess-process_call_service-generic_ternary_function.ads",
+      "synchronization-interprocess-process_call_service-generic_ternary_procedure.adb",
+      "synchronization-interprocess-process_call_service-generic_ternary_procedure.ads",
+      "synchronization-interprocess-process_call_service-generic_unary_function.adb",
+      "synchronization-interprocess-process_call_service-generic_unary_function.ads",
+      "synchronization-interprocess-process_call_service-generic_unary_procedure.adb",
+      "synchronization-interprocess-process_call_service-generic_unary_procedure.ads",
+      "synchronization-interprocess-process_call_service-get_string.ads",
+      "synchronization-interprocess-process_call_service-manager.adb",
+      "synchronization-interprocess-process_call_service-manager.ads",
+      "synchronization-interprocess-process_call_service-process_string.ads",
+      "synchronization-interprocess-process_call_service-set_string.ads",
+      "synchronization-interprocess-pulse_events.adb",
+      "synchronization-interprocess-pulse_events.ads",
+      "synchronization-interprocess-streams.adb",
+      "synchronization-interprocess-streams.ads",
+      "synchronization-mutexes.adb",
+      "synchronization-mutexes.ads",
+      "synchronization-pulse_events.adb",
+      "synchronization-pulse_events.ads",
+      "system_errno.ads",
+      "tables-utf8_names.adb",
+      "tables-utf8_names.ads"
+   );
+   case Tables.Target_OS is
+      when "Windows" | "Windows_NT" =>
+         for Source_Files use
+            Files_List & (  "synchronization-windows.adb",
+                            "synchronization-windows.ads"
+                         );
+      when "Linux" | "UNIX" | "auto" =>
+         for Source_Files use
+            Files_List & (  "synchronization_linux.c",
+                            "synchronization-linux.adb",
+                            "synchronization-linux.ads"
+                         );
+      when "OSX" | "FreeBSD" =>
+         for Source_Files use
+            Files_List & (  "synchronization-pthreads.adb",
+                            "synchronization-pthreads.ads"
+                         );
+   end case;
+
+   package Compiler renames Strings_Edit.Compiler;
+   package Binder   renames Strings_Edit.Binder;
+   package Builder  renames Strings_Edit.Builder;
+   package Linker is
+      case Tables.Target_OS is
+         when "Linux" =>
+            case Atomic_Access is
+               when "GCC-long-offsets" | "GCC-built-ins" =>
+                  for Default_Switches ("Ada") use
+                     Strings_Edit.Linker'Default_Switches ("Ada") &
+                     "-latomic";
+               when others =>
+                  for Default_Switches ("Ada") use
+                     Strings_Edit.Linker'Default_Switches ("Ada");
+            end case;
+         when others =>
+            for Default_Switches ("Ada") use
+               Strings_Edit.Linker'Default_Switches ("Ada");
+      end case;
+   end Linker;
+
+end Components;
