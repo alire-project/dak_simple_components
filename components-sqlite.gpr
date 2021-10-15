@@ -34,7 +34,8 @@ project Components.SQLite is
                 );
          when "Release" =>
             for Default_Switches ("C") use
-                (  "-O2"
+                (  "-O2",
+                   "-gnatn"
                 );
          when "Profile" =>
             for Default_Switches ("C") use

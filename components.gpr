@@ -369,22 +369,6 @@ project Components is
    package Compiler renames Strings_Edit.Compiler;
    package Binder   renames Strings_Edit.Binder;
    package Builder  renames Strings_Edit.Builder;
-   package Linker is
-      case Tables.Target_OS is
-         when "Linux" =>
-            case Atomic_Access is
-               when "GCC-long-offsets" | "GCC-built-ins" =>
-                  for Default_Switches ("Ada") use
-                     Strings_Edit.Linker'Default_Switches ("Ada") &
-                     "-latomic";
-               when others =>
-                  for Default_Switches ("Ada") use
-                     Strings_Edit.Linker'Default_Switches ("Ada");
-            end case;
-         when others =>
-            for Default_Switches ("Ada") use
-               Strings_Edit.Linker'Default_Switches ("Ada");
-      end case;
-   end Linker;
+   package Linker   renames Strings_Edit.Linker;
 
 end Components;

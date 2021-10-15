@@ -3,7 +3,7 @@
 --  Interface                                      Luebeck            --
 --                                                 Winter, 2009       --
 --                                                                    --
---                                Last revision :  00:34 26 Oct 2019  --
+--                                Last revision :  13:13 14 Sep 2019  --
 --                                                                    --
 --  This  library  is  free software; you can redistribute it and/or  --
 --  modify it under the terms of the GNU General Public  License  as  --
@@ -73,27 +73,6 @@ package SQLite is
 -- Data_Base -- The type encapsulating a SQLite data base
 --
    type Data_Base is tagged private;
---
--- Filename -- The database file name
---
---    Base - The data base
---    Name - The data base name, e.g. main
---
--- This  function returns the name of  the file associated with the data
--- base. It is always an absolute name path.
---
--- Returns :
---
---    The file name
---
--- Exceptions :
---
---    Constraint_Error - Base is an invalid handle
---
-   function Filename
-            (  Base : Data_Base;
-               Name : String := "main"
-            )  return String;
 --
 -- Open -- The database file
 --
@@ -342,24 +321,6 @@ package SQLite is
 --
    procedure Reset (Command : Statement);
 --
--- SQL -- The original SQL command text of the prepared statement
---
---    Command - The statement being execured
---
--- This  function returns an  UTF-8 string  containing  the SQL text  of
--- the statement with bound parameters expanded.
---
--- Returns :
---
---    The statement text
---
--- Exceptions :
---
---    Constraint_Error - Command is an invalid handle
---    Status_Error     - Access error
---
-   function SQL (Command : Statement) return String;
---
 -- Step -- Execue prepared command
 --
 --    Command   - The statement being execured
@@ -517,96 +478,6 @@ package SQLite is
              (  Object : Backup;
                 Pages  : int := -1
              );
-------------------------------------------------------------------------
--- Tracing interface
---
--- Get_User_Data -- Get user data
---
---    Base - The database
---
--- Returns :
---
---    The user data or null if not set
---
--- Exceptions :
---
---    Constraint_Error - Base is an invalid handle
---
-   function Get_User_Data (Base : Data_Base) return Object.Entity_Ptr;
---
--- On_Close -- Connection closing callback
---
-   type On_Close is access procedure
-        (  User_Data : Object.Entity_Ptr
-        );
---
--- On_Profile -- Profiling callback
---
---    Command - Statement being executed
---    Elapsed - The time required to execute the statement
---
-   type On_Profile is access procedure
-        (  Command   : Statement'Class;
-           Elapsed   : Duration;
-           User_Data : Object.Entity_Ptr
-        );
---
--- On_Row -- Row set callback
---
---    Command - Statement being executed
---
-   type On_Row is access procedure
-        (  Command   : Statement'Class;
-           User_Data : Object.Entity_Ptr
-        );
---
--- On_Statement -- Trace
---
---    Command - Statement being executed
---    Query   - The query
---
-   type On_Statement is access procedure
-        (  Command   : Statement'Class;
-           Query     : String;
-           User_Data : Object.Entity_Ptr
-        );
---
--- Set_Trace -- Enable or disable tracing
---
---    Base   - The database
---    Tracer - The callback procedure
---
--- When the argument is null the corresponding tracing is disabled. Note
--- that  the statement passed into  the callback is not the original Ada
--- object.  It is a new object referencing  the original SQLite prepared
--- statement.
---
--- Exceptions :
---
---    Constraint_Error - Base is an invalid handle
---
-   procedure Set_Trace (Base : Data_Base; Tracer : On_Statement);
-   procedure Set_Trace (Base : Data_Base; Tracer : On_Profile);
-   procedure Set_Trace (Base : Data_Base; Tracer : On_Row);
-   procedure Set_Trace (Base : Data_Base; Tracer : On_Close);
---
--- Set_User_Data -- Set user data
---
---    Base - The database
---    Data - The user data, reference-counted object
---
--- If the pointer is not  null the object reference is incremented until
--- another object is set.
---
--- Exceptions :
---
---    Constraint_Error - Base is an invalid handle
---
-   procedure Set_User_Data
-             (  Base : Data_Base;
-                Data : Object.Entity_Ptr
-             );
-
 private
    pragma Inline (Bind);
    pragma Inline (Column);
@@ -624,12 +495,7 @@ private
    pragma Convention (C, SQLite_Handle);
 
    type Data_Base_Object is new Object.Entity with record
-      Handle       : aliased SQLite_Handle;
-      User_Data    : Object.Entity_Ptr;
-      Do_Close     : On_Close     := null;
-      Do_Statement : On_Statement := null;
-      Do_Profile   : On_Profile   := null;
-      Do_Row       : On_Row       := null;
+      Handle : aliased SQLite_Handle;
    end record;
    type Data_Base_Object_Ptr is access Data_Base_Object'Class;
 --
@@ -652,10 +518,6 @@ private
 -- Finalize -- Overrides Object...
 --
    procedure Finalize (Object : in out Statement_Object);
-
-   type Immutable_Statement_Object is
-      new Statement_Object with null record;
-   procedure Finalize (Object : in out Immutable_Statement_Object);
 
    package Statement_Handles is
       new Object.Handle (Statement_Object, Statement_Object_Ptr);

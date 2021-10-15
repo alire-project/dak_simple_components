@@ -3,7 +3,7 @@
 --     GNAT.Sockets.Connection_State_Machine.      Luebeck            --
 --     HTTP_Client                                 Spring, 2015       --
 --  Implementation                                                    --
---                                Last revision :  14:07 11 Nov 2019  --
+--                                Last revision :  18:41 01 Aug 2019  --
 --                                                                    --
 --  This  library  is  free software; you can redistribute it and/or  --
 --  modify it under the terms of the GNU General Public  License  as  --
@@ -273,7 +273,6 @@ package body GNAT.Sockets.Connection_State_Machine.HTTP_Client is
 
    procedure Finalize (Session : in out HTTP_Session) is
    begin
-      Cleanup (Session);
       for Index in Session.Request_Headers'Range loop
          Free (Session.Request_Headers (Index));
       end loop;

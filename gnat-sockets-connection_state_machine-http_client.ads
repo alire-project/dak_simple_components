@@ -3,7 +3,7 @@
 --     GNAT.Sockets.Connection_State_Machine.      Luebeck            --
 --     HTTP_Client                                 Spring, 2015       --
 --  Interface                                                         --
---                                Last revision :  14:07 11 Nov 2019  --
+--                                Last revision :  18:49 10 Apr 2017  --
 --                                                                    --
 --  This  library  is  free software; you can redistribute it and/or  --
 --  modify it under the terms of the GNU General Public  License  as  --
@@ -873,6 +873,13 @@ private
 
    type Action is access
       procedure (Session : in out HTTP_Session'Class);
+
+--     type Data_Pool is new Stack_Storage.Pool with null record;
+--     procedure Write
+--               (  Stream : access Root_Stream_Type'Class;
+--                  Item   : Data_Pool
+--               );
+--     for Data_Pool'Write use Write;
 
    type String_Data (Size : Natural) is record
       Length : Natural := 0;

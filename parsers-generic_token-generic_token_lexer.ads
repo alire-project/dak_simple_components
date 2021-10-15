@@ -216,5 +216,4 @@ private
            Infixes   : access Vocabulary.Table'Class;
            Postfixes : access Vocabulary.Table'Class
         )  is abstract new Implementation.Lexer with null record;
-
 end Parsers.Generic_Token.Generic_Token_Lexer;

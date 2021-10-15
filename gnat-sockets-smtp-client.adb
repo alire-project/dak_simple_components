@@ -3,7 +3,7 @@
 --     GNAT.Sockets.SMTP.Client                    Luebeck            --
 --  Implementation                                 Summer, 2016       --
 --                                                                    --
---                                Last revision :  14:07 11 Nov 2019  --
+--                                Last revision :  13:13 14 Sep 2019  --
 --                                                                    --
 --  This  library  is  free software; you can redistribute it and/or  --
 --  modify it under the terms of the GNU General Public  License  as  --
@@ -827,6 +827,7 @@ package body GNAT.Sockets.SMTP.Client is
    end Elevated;
 
    function Empty return Mail_Address_List is
+      use Persistent.Catalogue;
       Result : Mail_Address_List;
    begin
       return Result;
@@ -906,6 +907,7 @@ package body GNAT.Sockets.SMTP.Client is
    end Find;
 
    function From_String (List : String) return Mail_Address_List is
+      use Persistent.Catalogue;
       Result : Mail_Address_List;
       Start  : Integer := List'First;
    begin
@@ -2475,6 +2477,7 @@ package body GNAT.Sockets.SMTP.Client is
                 Header  : List_Header;
                 List    : Mail_Address_List'Class
              )  is
+      use Persistent.Catalogue;
    begin
       if not Is_Valid (Message.Reference) then
          Set (Message.Reference, new Mail_Object);
@@ -2552,6 +2555,7 @@ package body GNAT.Sockets.SMTP.Client is
    end Value;
 
    function "/" (Left, Right : String) return Mail_Address_List is
+      use Persistent.Catalogue;
       Result : Mail_Address_List;
    begin
       Add_Address (Result, Left);
@@ -2563,6 +2567,7 @@ package body GNAT.Sockets.SMTP.Client is
              (  List    : Mail_Address_List;
                 Address : String
              )  return Mail_Address_List is
+      use Persistent.Catalogue;
       Result : Mail_Address_List := List;
    begin
       Add_Address (Result, Address);

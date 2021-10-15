@@ -3,7 +3,7 @@
 --     Synchronization.Interprocess.               Luebeck            --
 --     Process_Call_Service.Manager                Spring, 2018       --
 --  Interface                                                         --
---                                Last revision :  22:08 06 Jan 2020  --
+--                                Last revision :  19:18 30 Apr 2018  --
 --                                                                    --
 --  This  library  is  free software; you can redistribute it and/or  --
 --  modify it under the terms of the GNU General Public  License  as  --
@@ -24,9 +24,6 @@
 --  exception  does not however invalidate any other reasons why the  --
 --  executable file might be covered by the GNU Public License.       --
 --____________________________________________________________________--
-
-with Generic_Map;
-with Synchronization.Mutexes;
 
 package Synchronization.Interprocess.Process_Call_Service.Manager is
 --
@@ -116,25 +113,6 @@ package Synchronization.Interprocess.Process_Call_Service.Manager is
                ID      : Call_Service_ID
             )  return Call_Service_Ptr;
 --
--- Get_Service -- Get a service by its process ID
---
---    Manager - The manager object
---    ID      - The service's process ID
---
--- Returns :
---
---    A pointer to the call service corresponding to ID
---
--- Exceptions :
---
---    Constraint_Error - Invalid ID (there is no corresponding service)
---    Status_Error     - The manager is not initialized
---
-   function Get_Service
-            (  Manager : Call_Service_Manager;
-               ID      : Process_ID
-            )  return Call_Service_Ptr;
---
 -- Initialize -- Construction
 --
 --    Manager - The manager object
@@ -168,9 +146,6 @@ package Synchronization.Interprocess.Process_Call_Service.Manager is
                 Timeout : Duration := Duration'Last
              );
 private
-   package Process_Maps is
-      new Generic_Map (Process_ID, Call_Service_ID);
-
    type Call_Service_Array is
       array (Call_Service_ID range <>) of Call_Service_Ptr;
    type Call_Service_Manager
@@ -180,10 +155,8 @@ private
            Response_Stream_Size : Stream_Element_Count
         )  is new Abstract_Shared_Object with
    record
-      Lock      : aliased Synchronization.Mutexes.Mutex;
-      Server    : Call_Service_ID := 0;
-      Processes : Process_Maps.Map;
-      Services  : Call_Service_Array (1..Size);
+      Server   : Call_Service_ID := 0;
+      Services : Call_Service_Array (1..Size);
    end record;
    function Get_Size
             (  Manager : Call_Service_Manager

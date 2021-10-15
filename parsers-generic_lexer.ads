@@ -64,6 +64,7 @@
 --       On_Wrong_Comma
 --       On_Wrong_Right_Bracket
 --
+with Ada.Finalization;
 with Parsers.Generic_Argument;
 with Parsers.Generic_Operation.Generic_Stack;
 with Parsers.Generic_Source;
@@ -99,7 +100,8 @@ package Parsers.Generic_Lexer is
 --
 -- Lexer -- The base type for user-defined lexers
 --
-   type Lexer is abstract new Operation_Stack with private;
+   type Lexer is abstract
+      new Ada.Finalization.Limited_Controlled with private;
 --
 -- Call -- To an operator, ligature or semicolon
 --
@@ -757,38 +759,7 @@ package Parsers.Generic_Lexer is
             (  Context : Lexer;
                Depth   : Natural := 0
             )  return Descriptor;
-------------------------------------------------------------------------
---
--- Call -- Overrides Parsers.Generic_Operation.Stack...
---
-   procedure Call
-             (  Context   : in out Lexer;
-                Operation : Operation_Type;
-                Count     : Natural
-             );
---
--- Enclose -- Overrides Parsers.Generic_Operation.Stack...
---
-   procedure Enclose
-             (  Context : in out Lexer;
-                Left    : Operation_Type;
-                Right   : Operation_Type;
-                Count   : Natural
-             );
---
--- Pop -- Delegated to the argument stack
---
-   procedure Pop
-             (  Context : in out Lexer;
-                List    : in out Frame
-             );
---
--- Push -- Delegated to the argument stack
---
-   procedure Push
-             (  Context  : in out Lexer;
-                Argument : Argument_Type
-             );
+
 private
    pragma Inline (Do_Binary, Do_Postfix, Do_Prefix);
    pragma Inline (Do_Comma);
@@ -800,14 +771,44 @@ private
    pragma Inline (Get_Operation_Stack_Depth);
    pragma Inline (Get_Operation_Stack_Item);
    pragma Inline (Is_Expected);
+
+   type Lexer_Operation_Stack (Context : access Lexer'Class) is
+      new Operation_Stack with null record;
+--
+-- Call -- Overrides Parsers.Generic_Operation.Stack...
+--
+   procedure Call
+             (  Stack     : in out Lexer_Operation_Stack;
+                Operation : Operation_Type;
+                Count     : Natural
+             );
+--
+-- Enclose -- Overrides Parsers.Generic_Operation.Stack...
+--
+   procedure Enclose
+             (  Stack   : in out Lexer_Operation_Stack;
+                Left    : Operation_Type;
+                Right   : Operation_Type;
+                Count   : Natural
+             );
+--
+-- Is_Expected -- Overrides Parsers.Generic_Operation.Stack...
+--
+   function Is_Expected
+            (  Stack    : Lexer_Operation_Stack;
+               Operator : Operation_Type
+            )  return Boolean;
 --
 -- Lexer -- Type completion
 --
 --    Arguments  - The argument stack
 --    Operations - The operation stack
 --
-   type Lexer is abstract new Operation_Stack with record
-      Arguments : Argument_Stack;
+   type Lexer is abstract
+      new Ada.Finalization.Limited_Controlled with
+   record
+      Arguments  : Argument_Stack;
+      Operations : Lexer_Operation_Stack (Lexer'Unchecked_Access);
    end record;
 
 end Parsers.Generic_Lexer;

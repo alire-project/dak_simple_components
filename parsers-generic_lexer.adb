@@ -40,7 +40,7 @@ package body Parsers.Generic_Lexer is
    begin
       begin
          Push_Binary
-         (  Container => Context,
+         (  Container => Context.Operations,
             Operation => Operator,
             Left      => Left,
             Right     => Right,
@@ -50,7 +50,7 @@ package body Parsers.Generic_Lexer is
       exception
          when Association_Error =>
             declare
-               Other : Descriptor := Top (Context);
+               Other : Descriptor := Top (Context.Operations);
             begin
                On_Association_Error
                (  Context,
@@ -58,9 +58,9 @@ package body Parsers.Generic_Lexer is
                   Other.Operation,
                   Operator
                );
-               Replace (Context, Other);
+               Replace (Context.Operations, Other);
                Push_Binary
-               (  Container => Context,
+               (  Container => Context.Operations,
                   Operation => Operator,
                   Left      => Left,
                   Right     => Right,
@@ -85,12 +85,12 @@ package body Parsers.Generic_Lexer is
              )  is
    begin
       begin
-         Push_Postfix (Context, Operator, Left, Right);
+         Push_Postfix (Context.Operations, Operator, Left, Right);
          Got_It := True;
       exception
          when Association_Error =>
             declare
-               Other : Descriptor := Top (Context);
+               Other : Descriptor := Top (Context.Operations);
             begin
                On_Association_Error
                (  Context,
@@ -98,9 +98,9 @@ package body Parsers.Generic_Lexer is
                   Other.Operation,
                   Operator
                );
-               Replace (Context, Other);
+               Replace (Context.Operations, Other);
                Push_Postfix
-               (  Context,
+               (  Context.Operations,
                   Operator,
                   Left,
                   Right,
@@ -124,12 +124,12 @@ package body Parsers.Generic_Lexer is
              )  is
    begin
       begin
-         Push_Prefix (Context, Operator, Left, Right);
+         Push_Prefix (Context.Operations, Operator, Left, Right);
          Got_It := True;
       exception
          when Association_Error =>
             declare
-               Other : Descriptor := Top (Context);
+               Other : Descriptor := Top (Context.Operations);
             begin
                On_Association_Error
                (  Context,
@@ -137,9 +137,9 @@ package body Parsers.Generic_Lexer is
                   Other.Operation,
                   Operator
                );
-               Replace (Context, Other);
+               Replace (Context.Operations, Other);
                Push_Prefix
-               (  Context,
+               (  Context.Operations,
                   Operator,
                   Left,
                   Right,
@@ -161,11 +161,11 @@ package body Parsers.Generic_Lexer is
              )  is
    begin
       begin
-         Push_Left_Bracket (Context, Bracket, Left);
+         Push_Left_Bracket (Context.Operations, Bracket, Left);
       exception
          when Association_Error =>
             declare
-               Other : Descriptor := Top (Context);
+               Other : Descriptor := Top (Context.Operations);
             begin
                On_Association_Error
                (  Context,
@@ -173,9 +173,9 @@ package body Parsers.Generic_Lexer is
                   Other.Operation,
                   Bracket
                );
-               Replace (Context, Other);
+               Replace (Context.Operations, Other);
                Push_Left_Bracket
-               (  Context,
+               (  Context.Operations,
                   Bracket,
                   Left,
                   True
@@ -192,7 +192,7 @@ package body Parsers.Generic_Lexer is
                 Got_It  : out Boolean
              )  is
    begin
-      Push_Comma (Context, Comma, Plain);
+      Push_Comma (Context.Operations, Comma, Plain);
       Got_It := True;
    exception
       when Unexpected_Comma =>
@@ -200,11 +200,11 @@ package body Parsers.Generic_Lexer is
          Got_It := False;
       when Wrong_Comma_Type =>
          declare
-            Other : Descriptor := Top (Context);
+            Other : Descriptor := Top (Context.Operations);
          begin
             On_Wrong_Comma (Context, Code, Other.Operation, Comma);
-            Replace (Context, Other);
-            Push_Comma (Context, Comma, Plain, True);
+            Replace (Context.Operations, Other);
+            Push_Comma (Context.Operations, Comma, Plain, True);
             Got_It := True;
          end;
    end Do_Comma;
@@ -244,11 +244,11 @@ package body Parsers.Generic_Lexer is
             end;
          end if;
       else
-         if Is_Empty (Context) then
+         if Is_Empty (Context.Operations) then
             Got_It := False;
          else
             declare
-               Left : Descriptor := Top (Context);
+               Left : Descriptor := Top (Context.Operations);
             begin
                case Left.Class is
                   when Stub =>
@@ -263,7 +263,7 @@ package body Parsers.Generic_Lexer is
                      );
                end case;
                if Got_It then
-                  Replace (Context, Left);
+                  Replace (Context.Operations, Left);
                end if;
             end;
          end if;
@@ -277,7 +277,7 @@ package body Parsers.Generic_Lexer is
                 Got_It  : out Boolean
              )  is
    begin
-      Push_Right_Bracket (Context, Bracket);
+      Push_Right_Bracket (Context.Operations, Bracket);
       Got_It := True;
    exception
       when Unexpected_Right_Bracket =>
@@ -285,7 +285,7 @@ package body Parsers.Generic_Lexer is
          Got_It := False;
       when Wrong_Right_Bracket_Type =>
          declare
-            Other : Descriptor := Top (Context);
+            Other : Descriptor := Top (Context.Operations);
          begin
             On_Wrong_Right_Bracket
             (  Context,
@@ -295,8 +295,8 @@ package body Parsers.Generic_Lexer is
                Got_It
             );
             if Got_It then
-               Replace (Context, Other);
-               Push_Right_Bracket (Context, Bracket, True);
+               Replace (Context.Operations, Other);
+               Push_Right_Bracket (Context.Operations, Bracket, True);
             end if;
          end;
    end Do_Right_Bracket;
@@ -310,7 +310,7 @@ package body Parsers.Generic_Lexer is
                 Got_It    : out Boolean
              )  is
    begin
-      Push_Semicolon (Context, Separator, Class, Priority);
+      Push_Semicolon (Context.Operations, Separator, Class, Priority);
       Got_It := True;
    exception
       when Unexpected_Comma =>
@@ -318,12 +318,12 @@ package body Parsers.Generic_Lexer is
          Got_It := False;
       when Wrong_Comma_Type =>
          declare
-            Other : Descriptor := Top (Context);
+            Other : Descriptor := Top (Context.Operations);
          begin
             On_Wrong_Comma (Context, Code, Other.Operation, Separator);
-            Replace (Context, Other);
+            Replace (Context.Operations, Other);
             Push_Semicolon
-            (  Context,
+            (  Context.Operations,
                Separator,
                Class,
                Priority,
@@ -379,41 +379,37 @@ package body Parsers.Generic_Lexer is
    end On_Unexpected;
 
    procedure Call
-             (  Context   : in out Lexer;
+             (  Stack     : in out Lexer_Operation_Stack;
                 Operation : Operation_Type;
                 Count     : Natural
              )  is
       List : Frame (1..Argument_No (Count));
    begin
-      Pop (Context.Arguments, List);
+      Pop (Stack.Context.Arguments, List);
       Push
-      (  Context.Arguments,
-         Call (Lexer'Class (Context)'Unchecked_Access, Operation, List)
+      (  Stack.Context.Arguments,
+         Call (Stack.Context, Operation, List)
       );
     end Call;
 
    procedure Enclose
-             (  Context : in out Lexer;
-                Left    : Operation_Type;
-                Right   : Operation_Type;
-                Count   : Natural
+             (  Stack : in out Lexer_Operation_Stack;
+                Left  : Operation_Type;
+                Right : Operation_Type;
+                Count : Natural
              )  is
       List : Frame (1..Argument_No (Count));
    begin
-      Pop (Context.Arguments, List);
+      Pop (Stack.Context.Arguments, List);
       Push
-      (  Context.Arguments,
-         Enclose
-         (  Lexer'Class (Context)'Unchecked_Access,
-            Left,
-            Right,
-            List
-      )  );
+      (  Stack.Context.Arguments,
+         Enclose (Stack.Context, Left, Right, List)
+      );
    end Enclose;
 
    function Get_Operation_Stack_Depth (Context : Lexer) return Natural is
    begin
-      return Get_Depth (Context);
+      return Get_Depth (Context.Operations);
    end Get_Operation_Stack_Depth;
 
    function Get_Operation_Stack_Item
@@ -421,8 +417,16 @@ package body Parsers.Generic_Lexer is
                Depth   : Natural := 0
             )  return Descriptor is
    begin
-      return Get (Context, Depth);
+      return Get (Context.Operations, Depth);
    end Get_Operation_Stack_Item;
+
+   function Is_Expected
+            (  Stack    : Lexer_Operation_Stack;
+               Operator : Operation_Type
+            )  return Boolean is
+   begin
+      return Is_Expected (Stack.Context.all, Operator);
+   end Is_Expected;
 
    function Is_Expected
             (  Context  : Lexer;
@@ -443,7 +447,7 @@ package body Parsers.Generic_Lexer is
       Modifier     : Operation_Type;
       Token        : Lexical_Token;
    begin
-      Push_Start (Context);
+      Push_Start (Context.Operations);
       Mark (Context.Arguments);
       Turnover : loop
          --
@@ -459,9 +463,9 @@ package body Parsers.Generic_Lexer is
                -- Missing operand due to end of source
                --
                Set_Pointer (Code, Get_Pointer (Code));
-               case Top (Context).Class is
+               case Top (Context.Operations).Class is
                   when Default =>
-                     Pop (Context);
+                     Pop (Context.Operations);
                   when Stub =>
                      On_Missing_Operand (Context, Code, Result);
                      Push (Context.Arguments, Result);
@@ -469,7 +473,7 @@ package body Parsers.Generic_Lexer is
                      On_Missing_Operand
                      (  Context,
                         Code,
-                        Top (Context).Operation,
+                        Top (Context.Operations).Operation,
                         Result
                      );
                      Push (Context.Arguments, Result);
@@ -501,7 +505,7 @@ package body Parsers.Generic_Lexer is
             case Token.Class is
                when Bracket =>
                   Push_Left_Bracket
-                  (  Context,
+                  (  Context.Operations,
                      Token.Operation
                   );
                   Got_Argument := False;
@@ -548,9 +552,9 @@ package body Parsers.Generic_Lexer is
          Got_Argument := True;
          if not Got_It then
             Set_Pointer (Code, Get_Pointer (Code));
-            case Top (Context).Class is
+            case Top (Context.Operations).Class is
                when Default =>
-                  Pop (Context);
+                  Pop (Context.Operations);
                   exit Turnover;
                when Stub =>
                   On_Missing_Operand (Context, Code, Result);
@@ -558,7 +562,7 @@ package body Parsers.Generic_Lexer is
                   On_Missing_Operand
                   (  Context,
                      Code,
-                     Top (Context).Operation,
+                     Top (Context.Operations).Operation,
                      Result
                   );
             end case;
@@ -707,12 +711,12 @@ package body Parsers.Generic_Lexer is
       Set_Pointer (Code, Get_Pointer (Code));
       loop
          begin
-            Push_End (Context);
+            Push_End (Context.Operations);
             exit;
          exception
             when Missing_Right_Bracket =>
                declare
-                  Left  : Descriptor := Top (Context);
+                  Left  : Descriptor := Top (Context.Operations);
                   Right : Operation_Type;
                begin
                   On_Missing_Right_Bracket
@@ -721,8 +725,8 @@ package body Parsers.Generic_Lexer is
                      Left.Operation,
                      Right
                   );
-                  Replace (Context, Left);
-                  Push_Right_Bracket (Context, Right);
+                  Replace (Context.Operations, Left);
+                  Push_Right_Bracket (Context.Operations, Right);
                end;
          end;
       end loop;
@@ -735,25 +739,9 @@ package body Parsers.Generic_Lexer is
       Release (Context.Arguments);
    exception
       when others =>
-         Push_Abort (Context);
+         Push_Abort (Context.Operations);
          Release (Context.Arguments);
          raise;
    end Parse;
-
-   procedure Pop
-             (  Context : in out Lexer;
-                List    : in out Frame
-             )  is
-   begin
-      Pop (Context.Arguments, List);
-   end Pop;
-
-   procedure Push
-             (  Context  : in out Lexer;
-                Argument : Argument_Type
-             )  is
-   begin
-      Push (Context.Arguments, Argument);
-   end Push;
 
 end Parsers.Generic_Lexer;
