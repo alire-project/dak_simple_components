@@ -3,7 +3,7 @@
 --     GNAT.Sockets.Connection_State_Machine.      Luebeck            --
 --     HTTP_Client                                 Spring, 2015       --
 --  Interface                                                         --
---                                Last revision :  14:07 11 Nov 2019  --
+--                                Last revision :  09:04 10 Jul 2021  --
 --                                                                    --
 --  This  library  is  free software; you can redistribute it and/or  --
 --  modify it under the terms of the GNU General Public  License  as  --
@@ -966,14 +966,16 @@ private
 -- Request_Line_Type -- Types of request lines/processing states
 --
    type Response_Line_Type is
-        (  Nothing,         -- No request active
+        (  Handshaking,     -- Performing handshake
            Response_Line,   -- Response status line
            Header_Line,     -- Response header field line
            Response_Data,   -- Response data
            Chunk_Header,    -- Chunk header
            Chunk_Data,      -- Chunk data
            Chunk_Data_CRLF, -- CRLF
-           Chunk_Footer     -- Chunk footer
+           Chunk_Footer,    -- Chunk footer
+           Nothing          -- No request active
+
         );
 
    subtype Specific_Header is Response_Header
@@ -987,7 +989,7 @@ private
            Output_Size     : Buffer_Length
         )  is new State_Machine (Input_Size, Output_Size) with
    record
-      Expecting        : Response_Line_Type   := Nothing;
+      Expecting        : Response_Line_Type   := Handshaking;
       Data_Length      : Stream_Element_Count := 0;
       Version          : HTTP_Version         := 1.1;
       Code             : Positive             := 200;
@@ -999,6 +1001,7 @@ private
       Trace_Message    : Boolean := False;
       Keep_Alive       : Boolean := False;
       Send_Date        : Boolean := True;
+      Inside_Sent      : Boolean := False;
       Connection       : Connection_Flags := Connection_Close;
       If_Modified      : String_Data_Ptr;
       If_Unmodified    : String_Data_Ptr;
