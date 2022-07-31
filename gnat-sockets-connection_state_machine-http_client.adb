@@ -3,7 +3,7 @@
 --     GNAT.Sockets.Connection_State_Machine.      Luebeck            --
 --     HTTP_Client                                 Spring, 2015       --
 --  Implementation                                                    --
---                                Last revision :  14:07 11 Nov 2019  --
+--                                Last revision :  09:04 10 Jul 2021  --
 --                                                                    --
 --  This  library  is  free software; you can redistribute it and/or  --
 --  modify it under the terms of the GNU General Public  License  as  --
@@ -78,7 +78,7 @@ package body GNAT.Sockets.Connection_State_Machine.HTTP_Client is
 
    procedure Cleanup (Session : in out HTTP_Session) is
    begin
-      Session.Expecting   := Nothing;
+      Session.Expecting   := Handshaking;
       Session.Data_Length := 0;
       Session.Version     := 1.1;
       Session.Code        := 200;
@@ -87,7 +87,11 @@ package body GNAT.Sockets.Connection_State_Machine.HTTP_Client is
       Session.Destination := null;
       Session.Send_Index  := 1;
       Session.Send_Length := 0;
-      Session.Connection  := Connection_Close;
+      if Session.Keep_Alive then
+         Session.Connection  := 0;
+      else
+         Session.Connection  := Connection_Close;
+      end if;
       Session.Response_Headers := (others => null);
       Session.Specific         := (others => False);
       Deallocate_All (Session.Pool);
@@ -442,9 +446,7 @@ package body GNAT.Sockets.Connection_State_Machine.HTTP_Client is
                Get_Session_State (State_Machine (Session));
    begin
       case Result is
-         when Session_Connected =>
-            return Session_Busy;
-         when Session_Active =>
+         when Session_Active | Session_Connected =>
             if Session.Expecting = Nothing then
                return Result;
             else
@@ -2436,7 +2438,7 @@ package body GNAT.Sockets.Connection_State_Machine.HTTP_Client is
       Pointer := Data'First;
       while Pointer <= Data'Last loop
          case Session.Expecting is
-            when Nothing => -- Unsolicited data
+            when Nothing | Handshaking => -- Unsolicited data
                Trace
                (  HTTP_Session'Class (Session),
                   (  "Unsolicited data |"
@@ -2792,6 +2794,10 @@ package body GNAT.Sockets.Connection_State_Machine.HTTP_Client is
       Index  : Positive renames Session.Send_Index;
       Length : Natural  renames Session.Send_Length;
    begin
+      if Session.Inside_Sent then
+         return;
+      end if;
+      Session.Inside_Sent := True;
       while Available_To_Send (Session) > 0 and then Index <= Length
       loop
          declare
@@ -2913,6 +2919,11 @@ package body GNAT.Sockets.Connection_State_Machine.HTTP_Client is
          end;
          Index := Index + 1;
       end loop;
+      Session.Inside_Sent := False;
+   exception
+      when others =>
+         Session.Inside_Sent := False;
+         raise;
    end Sent;
 
    procedure Set (Data : in out String_Data_Ptr; Text : String) is
