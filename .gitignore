@@ -1,5 +1,15 @@
 # Object file
 *.o
+*.d
 
 # Ada Library Information
 *.ali
+
+# GNAT information files
+*.stderr
+*.stdout
+*.cswi
+
+# Alire folders
+/alire/
+/config/
